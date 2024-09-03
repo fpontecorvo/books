@@ -1,19 +1,50 @@
-# Seed-poc
+# Books
 
-Esta semilla tiene como objetivo convertir a código los conceptos implementados en *Funding*.
+Esta semilla tiene como objetivo convertir a código los conceptos implementados en mi experiencia.
 Además, se deja la posibilidad de implementar esta semilla usando GraalVM para la compilación nativa del mismo.
 
 ### Stack:
 
 - Java 21
-- Kotlin 1.9
+- Kotlin 2.0
 - Spring Boot 3
 - MongoDB
 - Redis
 - Kafka
 - Arrow-kt
+- Micrometer
 
 ***
+
+## Ejecutar
+```shell
+./gradlew bootBuildImage
+```
+
+```shell
+docker-compose up -d
+```
+***
+
+# JVM version
+
+Si necesita generar una imagen basada en jvm comentar plugin nativo en *build.gradle.kts*
+y regenerar la imagen
+
+```kts
+plugins {
+    id("org.springframework.boot") version "3.3.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+    id("io.spring.dependency-management") version "1.1.5"
+    //comment this line --> id("org.graalvm.buildtools.native") version "0.10.1" 
+    id("org.jetbrains.kotlin.plugin.noarg") version "2.0.20"
+    kotlin("jvm") version "2.0.20"
+    kotlin("plugin.spring") version "2.0.20"
+}
+```
+
+***
+
 
 ## Arquitectura
 
@@ -24,22 +55,6 @@ Está basada en una arquitectura hexagonal clásica, pero de manera más pragmá
 - Todos los *usecase* reciben como mínimo los requisitos para su ejecución y devuelven la entidad de dominio generada.
 - Todas los puertos de salida son *functional interface* que son inyectadas en los *usecase/service*, pero la
   implementación de ellas es a través de una *internal interface* que las clusteriza.
-
-***
-
-## Branching
-
-Esta semilla cuenta con 2 branches principales, *main* y *reactive*, utilizando spring-web y spring-webflux
-respectivamente.
-Así proporcionar opciones para dos tipos de enfoque.
-
-El branch *reactive* utiliza el modificador de función *suspend* de kotlin a lo largo de todo el código para el manejo
-non-blocking de la app,
-a su vez también la versiones de Mongo y Redis utilizadas son su contraparte reactivas implementadas con Reactor.
-Kotlin maneja de forma nativa un interface para reactor donde: *Mono<T\> => T?* y *Flux<T\> => Flow<T\>*.
-Además se utiliza el DSL de ruteo funcional en vez del approach clásico de @RestController utilizado en *main*.
-
-***
 
 ## Arrow-kt
 
