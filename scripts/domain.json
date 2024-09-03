@@ -1,0 +1,25 @@
+{
+  "name": "Coffee",
+  "content": [
+    {
+      "field": "name",
+      "type": "String",
+      "example": "Espresso"
+    },
+    {
+      "field": "size",
+      "type": "String",
+      "example": "1Kg"
+    },
+    {
+      "field": "brand",
+      "type": "String",
+      "example": "Nescafe"
+    },
+    {
+      "field": "price",
+      "type": "Number",
+      "example": 5
+    }
+  ]
+}

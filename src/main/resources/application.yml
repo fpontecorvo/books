@@ -1,0 +1,76 @@
+spring:
+  reactor:
+    context-propagation: auto
+  application:
+    name: books
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USER}:${MONGO_PASS}@${MONGO_URI}
+      auto-index-creation: true
+      uuid-representation: standard
+    redis:
+      lettuce:
+        cluster:
+          refresh:
+            dynamic-refresh-sources: true
+      port: 6379
+      host: ${REDIS_HOST}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAPS}
+    security:
+      protocol: "SSL"
+    listener:
+      ack-mode: "manual_immediate"
+      missing-topics-fatal: false
+      observation-enabled: true
+    consumer:
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  jackson:
+    date-format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: NON_NULL
+  cloud:
+    config:
+      import-check:
+        enabled: false
+  sleuth:
+    propagation:
+      type: w3c,b3
+  threads:
+    virtual:
+      enabled: true
+
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1
+
+book:
+  config:
+    cache:
+      ttl: 6000 #in seconds
+
+messages:
+  topic:
+    book:
+      created: book.created
+      deleted: book.deleted
+  group:
+    book:
+      save: save.book
+
+logging:
+  pattern:
+    console: "%boldGreen(%d{yy-MM-dd}) %boldGreen(%d{HH:mm:ss.SSS}) | %boldMagenta(%-15.15mdc{traceId} %-15.15mdc{spanId} %-15.15mdc{thread}) | %highlight(%-5.5level) | %-15.15logger{15} | %boldCyan(%-10.10mdc{folder}) | %m%n"
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs

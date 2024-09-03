@@ -1,0 +1,37 @@
+spring:
+  data:
+    mongodb:
+      database: books
+      uri: "mongodb://redbee:r3db33@${MONGO_HOST}/books?authSource=admin"
+    redis:
+      port: 6379
+      host: ${REDIS_HOST}
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST}
+    security:
+      protocol: "PLAINTEXT"
+
+server:
+  port: 8080
+
+management:
+  tracing:
+    enabled: true
+    sampling.probability: 1
+    propagation:
+      type: w3c
+    brave:
+      span-joining-supported: true
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              ReactiveMongoTemplate: INFO
+
+#  MONGO_HOST=localhost:27017;
+#  KAFKA_HOST=localhost:9092;
+#  REDIS_HOST=localhost;

@@ -1,0 +1,86 @@
+version: '3.3'
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ~/apps/mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=redbee
+      - MONGO_INITDB_ROOT_PASSWORD=r3db33
+      - MONGO_INITDB_DATABASE=books
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.1.1
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+    # reachable on 9092 from the host and on 29092 from inside docker compose
+  kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    expose:
+      - '29092'
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+      KAFKA_MIN_INSYNC_REPLICAS: '1'
+
+  init-kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    restart: always
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29092 --list
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic my-topic-1 --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic my-topic-2 --replication-factor 1 --partitions 1
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+
+  redis:
+    image: redis:6.0.3-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always     # "unless-stopped" or "always"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ## UNCOMMENT THESE LINES IF WE USE CUSTOM REDIS CONFIG ##
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+
+  book:
+    image: books:1.0.0
+    container_name: books
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - redis
+      - mongodb
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      KAFKA_HOST: kafka:29092
+      MONGO_HOST: mongodb:27017
+      REDIS_HOST: redis

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "Running lint check..."
+
+./gradlew ktlintFormat --daemon --info
+
+status=$?
+
+# return 1 exit code if running checks fails
+[ $status -ne 0 ] && exit 1
+git add src/
+exit 0
